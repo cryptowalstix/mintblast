@@ -286,7 +286,7 @@ const MINT_LEN = 82;
 const FEE_WALLET = new solanaWeb3.PublicKey('11111111111111111111111111111111');
 const SERVICE_FEE_LAMPORTS = 0; // TEST MODE — 0 SOL service fee
 
-const RPC = 'https://solana-mainnet.g.alchemy.com/v2/demo';
+const RPC = 'https://mainnet.helius-rpc.com/?api-key=7b597986-16c5-4c52-a572-d048372a7711';
 
 function writeU64LE(arr,val,off){let v=BigInt(val);for(let i=0;i<8;i++){arr[off+i]=Number(v&0xffn);v>>=8n;}}
 function ixInitMint(dec,authPK,frzPK){const d=new Uint8Array(67);d[0]=0;d[1]=dec;d.set(authPK.toBytes(),2);if(frzPK){d[34]=1;d.set(frzPK.toBytes(),35);}return d;}
