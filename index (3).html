@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MINTBLAST — Solana Token Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@solana/web3.js@1.87.6/lib/index.iife.min.js"></script>
+<style>
+  :root{--bg:#060610;--surface:#0d0d1f;--card:#11112a;--border:#1e1e45;--accent:#9945FF;--accent2:#14F195;--accent3:#FF6B35;--text:#f0f0ff;--muted:#6b6b9a;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh;overflow-x:hidden;}
+  body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 600px 400px at 10% 20%,rgba(153,69,255,.12) 0%,transparent 70%),radial-gradient(ellipse 400px 400px at 90% 80%,rgba(20,241,149,.08) 0%,transparent 70%);pointer-events:none;z-index:0;}
+  body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(153,69,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(153,69,255,.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
+  .container{position:relative;z-index:1;max-width:860px;margin:0 auto;padding:0 24px 80px;}
+  header{padding:24px 0 20px;display:flex;align-items:center;justify-content:space-between;}
+  .logo{display:flex;align-items:center;gap:12px;}
+  .logo-icon{width:44px;height:44px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;animation:float 3s ease-in-out infinite;}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+  .logo-text{font-size:22px;font-weight:800;background:linear-gradient(90deg,#fff,var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+  .logo-tag{font-family:'Space Mono',monospace;font-size:10px;color:var(--accent2);background:rgba(20,241,149,.08);border:1px solid rgba(20,241,149,.2);padding:3px 8px;border-radius:20px;}
+  .chain-badge{display:flex;align-items:center;gap:8px;background:rgba(153,69,255,.1);border:1px solid rgba(153,69,255,.25);padding:8px 16px;border-radius:100px;font-family:'Space Mono',monospace;font-size:12px;color:var(--accent);}
+  .dot{width:8px;height:8px;background:var(--accent2);border-radius:50%;animation:blink 1.5s ease-in-out infinite;}
+  @keyframes blink{0%,100%{opacity:1;box-shadow:0 0 6px var(--accent2)}50%{opacity:.4;box-shadow:none}}
+  .hero{text-align:center;padding:50px 0 40px;}
+  .hero h1{font-size:clamp(38px,7vw,66px);font-weight:800;line-height:1;letter-spacing:-2px;margin-bottom:18px;}
+  .grad{background:linear-gradient(135deg,var(--accent),var(--accent2) 50%,var(--accent3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+  .hero-sub{font-size:16px;color:var(--muted);max-width:480px;margin:0 auto 30px;line-height:1.6;}
+  .stats-row{display:flex;justify-content:center;gap:40px;}
+  .stat-val{font-size:24px;font-weight:800;background:linear-gradient(90deg,var(--accent2),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+  .stat-lbl{font-size:11px;color:var(--muted);font-family:'Space Mono',monospace;letter-spacing:1px;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:24px;padding:40px;box-shadow:0 40px 80px rgba(0,0,0,.4);margin-bottom:24px;}
+  .sec{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px;color:var(--accent);text-transform:uppercase;margin-bottom:24px;display:flex;align-items:center;gap:10px;}
+  .sec::after{content:'';flex:1;height:1px;background:var(--border);}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;}
+  .field{display:flex;flex-direction:column;gap:8px;}
+  .field label{font-size:12px;font-weight:600;color:var(--muted);display:flex;align-items:center;gap:6px;}
+  .req{color:var(--accent3);}
+  .tip{margin-left:auto;font-family:'Space Mono',monospace;font-size:10px;color:var(--accent2);background:rgba(20,241,149,.06);padding:2px 6px;border-radius:4px;}
+  .field input,.field select,.field textarea{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;color:var(--text);font-family:'Syne',sans-serif;font-size:15px;transition:all .2s;outline:none;width:100%;}
+  .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(153,69,255,.12);}
+  .field input::placeholder,.field textarea::placeholder{color:#3a3a60;}
+  .field select option{background:var(--card);}
+  .cc{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);text-align:right;margin-top:4px;}
+  .cc.warn{color:var(--accent3);}
+  .hr{height:1px;background:var(--border);margin:28px 0;}
+  .logo-drop{border:2px dashed var(--border);border-radius:16px;padding:28px;text-align:center;cursor:pointer;transition:all .3s;position:relative;overflow:hidden;}
+  .logo-drop:hover{border-color:var(--accent);}
+  .logo-drop.has{border-color:var(--accent2);border-style:solid;}
+  .logo-drop input{position:absolute;inset:0;opacity:0;cursor:pointer;}
+  .specs{display:flex;justify-content:center;gap:8px;margin-top:12px;flex-wrap:wrap;}
+  .spec{font-family:'Space Mono',monospace;font-size:10px;padding:3px 8px;border-radius:6px;background:rgba(153,69,255,.08);border:1px solid rgba(153,69,255,.15);color:var(--accent);}
+  .lprev{display:none;flex-direction:column;align-items:center;gap:10px;}
+  .lprev img{width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid var(--accent2);}
+  .tgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;}
+  .tc{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;display:flex;align-items:flex-start;gap:14px;cursor:pointer;transition:all .2s;}
+  .tc:hover{border-color:rgba(153,69,255,.3);}
+  .tc.on{border-color:rgba(20,241,149,.3);background:rgba(20,241,149,.04);}
+  .ti{flex:1;}
+  .tn{font-size:13px;font-weight:700;margin-bottom:3px;}
+  .td{font-size:11px;color:var(--muted);line-height:1.4;}
+  .sw{width:44px;height:24px;background:var(--border);border-radius:100px;position:relative;flex-shrink:0;transition:background .3s;margin-top:2px;}
+  .sw::after{content:'';position:absolute;width:18px;height:18px;background:white;border-radius:50%;top:3px;left:3px;transition:transform .3s;}
+  .tc.on .sw{background:var(--accent2);}
+  .tc.on .sw::after{transform:translateX(20px);}
+  .fee-box{background:linear-gradient(135deg,rgba(153,69,255,.08),rgba(20,241,149,.05));border:1px solid rgba(153,69,255,.2);border-radius:16px;padding:20px;display:flex;align-items:center;gap:16px;margin-bottom:24px;}
+  .fee-val{font-size:22px;font-weight:800;background:linear-gradient(135deg,var(--accent2),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+  .fee-rows{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:20px;}
+  .fee-row{display:flex;justify-content:space-between;font-size:13px;padding:5px 0;color:var(--muted);}
+  .fee-row.tot{border-top:1px solid var(--border);margin-top:6px;padding-top:10px;color:var(--text);font-weight:700;}
+  .fee-row span:last-child{font-family:'Space Mono',monospace;}
+  .btn-main{width:100%;padding:20px;background:linear-gradient(135deg,var(--accent),#7b2fff);border:none;border-radius:16px;color:white;font-family:'Syne',sans-serif;font-size:17px;font-weight:800;cursor:pointer;transition:all .3s;box-shadow:0 8px 30px rgba(153,69,255,.35);}
+  .btn-main:hover{transform:translateY(-2px);box-shadow:0 12px 40px rgba(153,69,255,.5);}
+  .btn-connect{display:inline-flex;align-items:center;gap:10px;padding:14px 28px;background:linear-gradient(135deg,var(--accent2),#0dd174);border:none;border-radius:12px;color:#060610;font-family:'Syne',sans-serif;font-size:15px;font-weight:800;cursor:pointer;transition:all .2s;}
+  .btn-connect:hover{transform:translateY(-2px);}
+  .btn-sm{display:inline-flex;align-items:center;gap:8px;padding:12px 20px;background:var(--surface);border:1px solid var(--border);border-radius:12px;color:var(--text);font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;}
+  .btn-sm:hover{border-color:var(--accent);}
+  .spin-wrap{text-align:center;padding:60px 20px;}
+  .spinner{width:56px;height:56px;border:3px solid var(--border);border-top-color:var(--accent);border-right-color:var(--accent2);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 24px;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .lstep{font-family:'Space Mono',monospace;font-size:12px;color:var(--accent);margin-top:8px;}
+  .txlog{margin-top:20px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:left;max-height:160px;overflow-y:auto;}
+  .txl{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);padding:2px 0;}
+  .txl.ok{color:var(--accent2);}
+  .txl.er{color:var(--accent3);}
+  .res-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);}
+  .res-row:last-child{border-bottom:none;}
+  .rl{color:var(--muted);font-family:'Space Mono',monospace;font-size:11px;}
+  .rv{font-weight:700;font-family:'Space Mono',monospace;font-size:10px;color:var(--accent2);word-break:break-all;text-align:right;max-width:65%;}
+  .notif{position:fixed;bottom:24px;right:24px;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 18px;font-size:13px;max-width:320px;transform:translateX(130%);transition:transform .4s cubic-bezier(.34,1.56,.64,1);z-index:9999;}
+  .notif.show{transform:translateX(0);}
+  .notif.s{border-color:rgba(20,241,149,.3);}
+  .notif.e{border-color:rgba(255,107,53,.3);}
+  .notif.w{border-color:rgba(255,214,0,.3);}
+  footer{text-align:center;padding:20px 0 0;color:var(--muted);font-size:12px;font-family:'Space Mono',monospace;}
+  footer a{color:var(--accent);text-decoration:none;}
+  @keyframes bounceIn{0%{transform:scale(0)}70%{transform:scale(1.1)}100%{transform:scale(1)}}
+  @media(max-width:600px){.grid2,.tgrid{grid-template-columns:1fr;}.card{padding:24px;}header{flex-direction:column;gap:12px;align-items:flex-start;}.stats-row{gap:20px;}}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="logo">
+      <div class="logo-icon">⚡</div>
+      <div>
+        <div class="logo-text">MINTBLAST</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">Token Generator</div>
+      </div>
+      <div class="logo-tag">BETA</div>
+    </div>
+    <div class="chain-badge"><div class="dot"></div>SOLANA MAINNET</div>
+  </header>
+
+  <div class="hero">
+    <h1>Create your<br><span class="grad">Solana Token</span><br>right now.</h1>
+    <p class="hero-sub">No code. Fill the form, connect your wallet — your token is live on-chain instantly.</p>
+    <div class="stats-row">
+      <div class="stat"><div class="stat-val">12,400+</div><div class="stat-lbl">Tokens Created</div></div>
+      <div class="stat"><div class="stat-val">60s</div><div class="stat-lbl">Average Time</div></div>
+      <div class="stat"><div class="stat-val">0.20 SOL</div><div class="stat-lbl">Total Cost</div></div>
+    </div>
+  </div>
+
+  <div class="card" id="formPanel">
+    <div class="sec">01 — Token Identity</div>
+    <div class="grid2">
+      <div class="field">
+        <label>Token Name <span class="req">*</span> <span class="tip">Max 32</span></label>
+        <input id="tName" maxlength="32" placeholder="e.g. MoonCat Finance" oninput="cc(this,'cc1',32)">
+        <div class="cc" id="cc1">0 / 32</div>
+      </div>
+      <div class="field">
+        <label>Symbol <span class="req">*</span> <span class="tip">Max 10</span></label>
+        <input id="tSym" maxlength="10" placeholder="e.g. MCAT" oninput="this.value=this.value.toUpperCase();cc(this,'cc2',10)">
+        <div class="cc" id="cc2">0 / 10</div>
+      </div>
+    </div>
+    <div class="field" style="margin-bottom:20px">
+      <label>Description <span style="color:var(--muted)">(optional)</span></label>
+      <textarea id="tDesc" rows="2" maxlength="200" placeholder="What is your token about?" style="resize:vertical" oninput="cc(this,'cc3',200)"></textarea>
+      <div class="cc" id="cc3">0 / 200</div>
+    </div>
+
+    <div class="hr"></div>
+    <div class="sec">02 — Supply & Decimals</div>
+    <div class="grid2">
+      <div class="field">
+        <label>Total Supply <span class="req">*</span></label>
+        <input id="tSupply" type="number" min="1" value="1000000000">
+      </div>
+      <div class="field">
+        <label>Decimals <span class="req">*</span> <span class="tip">9 = standard</span></label>
+        <select id="tDec">
+          <option value="9" selected>9 — Standard</option>
+          <option value="6">6 — USDC style</option>
+          <option value="0">0 — Whole units</option>
+          <option value="2">2 — Cent precision</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="hr"></div>
+    <div class="sec">03 — Token Logo</div>
+    <div class="logo-drop" id="logoDrop" onclick="document.getElementById('logoFile').click()">
+      <input type="file" id="logoFile" accept="image/png,image/jpg,image/jpeg,image/webp" onchange="handleLogo(event)">
+      <div id="logoDefault">
+        <div style="font-size:36px;margin-bottom:10px">🖼️</div>
+        <div style="font-size:14px;font-weight:700;margin-bottom:6px">Upload your token logo</div>
+        <div style="font-size:12px;color:var(--muted)">PNG/JPG · Square · Ideal 512×512px · Max 1MB</div>
+        <div class="specs">
+          <span class="spec">PNG / JPG</span><span class="spec">512×512px ideal</span><span class="spec">Max 1MB</span><span class="spec">Square</span>
+        </div>
+      </div>
+      <div class="lprev" id="logoPrev">
+        <img id="logoImg" src="" alt="Logo">
+        <div style="font-size:12px;color:var(--accent2);font-family:'Space Mono',monospace">✅ Logo ready — Click to change</div>
+      </div>
+    </div>
+    <div style="margin-top:10px;padding:10px 14px;background:rgba(255,107,53,.05);border:1px solid rgba(255,107,53,.15);border-radius:10px;font-size:12px;color:#ff9a6c;line-height:1.5">
+      💡 <strong>Pro tip:</strong> Simple bold icon, no text. Transparent PNG ideal. Displays at 32×32px on DEX.
+    </div>
+
+    <div class="hr"></div>
+    <div class="sec">04 — Authorities</div>
+    <div class="tgrid">
+      <div class="tc on" id="t-mint" onclick="tog('mint')">
+        <div class="ti"><div class="tn">🔐 Revoke Mint</div><div class="td">No more tokens can ever be created.</div></div>
+        <div class="sw"></div>
+      </div>
+      <div class="tc on" id="t-freeze" onclick="tog('freeze')">
+        <div class="ti"><div class="tn">❄️ Revoke Freeze</div><div class="td">Wallets cannot be frozen. DEX requirement.</div></div>
+        <div class="sw"></div>
+      </div>
+      <div class="tc" id="t-update" onclick="tog('update')">
+        <div class="ti"><div class="tn">✏️ Revoke Update</div><div class="td">Metadata becomes immutable forever.</div></div>
+        <div class="sw"></div>
+      </div>
+      <div class="tc" id="t-social" onclick="tog('social')">
+        <div class="ti"><div class="tn">🌐 Social Links</div><div class="td">Add website, Twitter, Telegram.</div></div>
+        <div class="sw"></div>
+      </div>
+    </div>
+    <div id="socialBox" style="display:none">
+      <div class="grid2" style="margin-bottom:20px">
+        <div class="field"><label>🌐 Website</label><input id="sWeb" type="url" placeholder="https://yourtoken.xyz"></div>
+        <div class="field"><label>🐦 Twitter</label><input id="sTwi" type="url" placeholder="https://x.com/yourtoken"></div>
+        <div class="field"><label>✈️ Telegram</label><input id="sTel" type="url" placeholder="https://t.me/yourtoken"></div>
+        <div class="field"><label>💬 Discord</label><input id="sDis" type="url" placeholder="https://discord.gg/yourtoken"></div>
+      </div>
+    </div>
+
+    <div class="hr"></div>
+    <div class="sec">05 — Fee Summary</div>
+    <div class="fee-rows">
+      <div class="fee-row"><span>Solana network fee</span><span>~0.005 SOL</span></div>
+      <div class="fee-row"><span>Metadata on-chain</span><span>~0.01 SOL</span></div>
+      <div class="fee-row"><span>MINTBLAST service fee</span><span>0.185 SOL</span></div>
+      <div class="fee-row tot"><span>TOTAL</span><span>≈ 0.20 SOL</span></div>
+    </div>
+    <div class="fee-box">
+      <div style="font-size:28px">🔒</div>
+      <div style="flex:1">
+        <div style="font-size:14px;font-weight:700;margin-bottom:4px">100% transparent & non-custodial</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.5">Your wallet signs every transaction. We never hold your funds. Token sent directly to your wallet.</div>
+      </div>
+      <div style="text-align:right"><div class="fee-val">0.20</div><div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted)">SOL total</div></div>
+    </div>
+
+    <div id="noWallet">
+      <div style="text-align:center;padding:16px 0 8px">
+        <div style="font-size:13px;color:var(--muted);margin-bottom:14px;font-family:'Space Mono',monospace">Connect your Phantom wallet to continue</div>
+        <button class="btn-connect" onclick="connectWallet()">👻 Connect Phantom Wallet</button>
+      </div>
+    </div>
+    <div id="yesWallet" style="display:none">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;padding:12px 16px;background:rgba(20,241,149,.06);border:1px solid rgba(20,241,149,.15);border-radius:12px">
+        <div style="width:10px;height:10px;background:var(--accent2);border-radius:50%;box-shadow:0 0 8px var(--accent2)"></div>
+        <div style="flex:1;font-size:13px;font-family:'Space Mono',monospace;color:var(--accent2)" id="wAddr">—</div>
+        <div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--muted)">Balance: <span id="wBal" style="color:var(--accent2)">—</span> SOL</div>
+        <button onclick="disconnectWallet()" style="background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;font-family:'Space Mono',monospace">✕</button>
+      </div>
+      <button class="btn-main" onclick="createToken()">
+        <div style="display:flex;align-items:center;justify-content:center;gap:10px">⚡ CREATE MY TOKEN NOW 🚀</div>
+      </button>
+    </div>
+  </div>
+
+  <div class="card" id="loadPanel" style="display:none">
+    <div class="spin-wrap">
+      <div class="spinner"></div>
+      <div style="font-size:16px;color:var(--muted)">Creating your token on Solana Mainnet...</div>
+      <div class="lstep" id="lstep">Initializing...</div>
+      <div class="txlog" id="txlog"></div>
+    </div>
+  </div>
+
+  <div class="card" id="okPanel" style="display:none;text-align:center;padding:50px 40px">
+    <div style="font-size:56px;margin-bottom:20px;animation:bounceIn .5s">🎉</div>
+    <div style="font-size:28px;font-weight:800;margin-bottom:10px;background:linear-gradient(90deg,var(--accent2),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent">Token Created!</div>
+    <div style="font-size:15px;color:var(--muted);margin-bottom:28px">Your token is live on Solana Mainnet.</div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:24px;text-align:left" id="resTable"></div>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+      <button class="btn-sm" onclick="resetForm()">⚡ Create Another</button>
+      <button class="btn-sm" style="border-color:rgba(20,241,149,.3)" onclick="viewExp()">🔍 View on Solscan</button>
+      <button class="btn-sm" style="border-color:rgba(153,69,255,.3)" onclick="cpMint()">📋 Copy Mint</button>
+    </div>
+  </div>
+
+  <div class="card" id="errPanel" style="display:none;text-align:center;padding:40px">
+    <div style="font-size:48px;margin-bottom:16px">⚠️</div>
+    <div style="font-size:20px;font-weight:800;color:var(--accent3);margin-bottom:12px">Transaction Failed</div>
+    <div id="errMsg" style="font-size:12px;color:var(--muted);font-family:'Space Mono',monospace;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:left;line-height:1.7;margin-bottom:20px;word-break:break-all"></div>
+    <button class="btn-sm" onclick="resetForm()">← Try Again</button>
+  </div>
+
+  <footer>Built on <a href="#">Solana</a> · MINTBLAST © 2026 · <a href="#">Terms</a> · <a href="#">Docs</a></footer>
+</div>
+<div class="notif" id="notif"></div>
+
+<script>
+const TOKEN_PROGRAM_ID       = new solanaWeb3.PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
+const ASSOC_TOKEN_PROGRAM_ID = new solanaWeb3.PublicKey('ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJe1bRW');
+const SYSVAR_RENT            = new solanaWeb3.PublicKey('SysvarRent111111111111111111111111111111111');
+const MINT_LEN = 82;
+// ⚠️ Replace with your own wallet address to receive the 0.185 SOL service fee
+const FEE_WALLET = new solanaWeb3.PublicKey('11111111111111111111111111111111');
+const SERVICE_FEE_LAMPORTS = 185_000_000; // 0.185 SOL
+
+const RPC = 'https://api.mainnet-beta.solana.com';
+
+function writeU64LE(arr,val,off){let v=BigInt(val);for(let i=0;i<8;i++){arr[off+i]=Number(v&0xffn);v>>=8n;}}
+function ixInitMint(dec,authPK,frzPK){const d=new Uint8Array(67);d[0]=0;d[1]=dec;d.set(authPK.toBytes(),2);if(frzPK){d[34]=1;d.set(frzPK.toBytes(),35);}return d;}
+function ixMintTo(amt){const d=new Uint8Array(9);d[0]=7;writeU64LE(d,amt,1);return d;}
+function ixSetAuth(t,pk){const d=new Uint8Array(35);d[0]=6;d[1]=t;if(pk){d[2]=1;d.set(pk.toBytes(),3);}else{d[2]=0;}return d;}
+
+async function findATA(mintPK,ownerPK){
+  const[ata]=await solanaWeb3.PublicKey.findProgramAddress(
+    [ownerPK.toBytes(),TOKEN_PROGRAM_ID.toBytes(),mintPK.toBytes()],
+    ASSOC_TOKEN_PROGRAM_ID
+  );return ata;
+}
+
+function ixCreateATA(payerPK,ataPK,ownerPK,mintPK){
+  return new solanaWeb3.TransactionInstruction({
+    keys:[
+      {pubkey:payerPK,isSigner:true,isWritable:true},
+      {pubkey:ataPK,isSigner:false,isWritable:true},
+      {pubkey:ownerPK,isSigner:false,isWritable:false},
+      {pubkey:mintPK,isSigner:false,isWritable:false},
+      {pubkey:solanaWeb3.SystemProgram.programId,isSigner:false,isWritable:false},
+      {pubkey:TOKEN_PROGRAM_ID,isSigner:false,isWritable:false},
+      {pubkey:SYSVAR_RENT,isSigner:false,isWritable:false},
+    ],
+    programId:ASSOC_TOKEN_PROGRAM_ID,
+    data:new Uint8Array(0),
+  });
+}
+
+let wAddr=null,wPub=null,connected=false,logoFile=null,mintAddr=null;
+const TOG={mint:true,freeze:true,update:false,social:false};
+
+function cc(el,id,max){const c=document.getElementById(id);c.textContent=el.value.length+' / '+max;c.classList.toggle('warn',el.value.length>max*.85);}
+function tog(k){TOG[k]=!TOG[k];document.getElementById('t-'+k).classList.toggle('on',TOG[k]);if(k==='social')document.getElementById('socialBox').style.display=TOG[k]?'block':'none';}
+function handleLogo(e){const f=e.target.files[0];if(!f)return;if(f.size>1048576){notif('❌ Max 1MB','e');return;}logoFile=f;const r=new FileReader();r.onload=ev=>{document.getElementById('logoImg').src=ev.target.result;document.getElementById('logoDefault').style.display='none';document.getElementById('logoPrev').style.display='flex';document.getElementById('logoDrop').classList.add('has');notif('✅ Logo loaded!','s');};r.readAsDataURL(f);}
+function show(id){['formPanel','loadPanel','okPanel','errPanel'].forEach(p=>document.getElementById(p).style.display=p===id?'block':'none');}
+function log(msg,type=''){const l=document.getElementById('txlog');const d=document.createElement('div');d.className='txl'+(type?' '+type:'');d.textContent=new Date().toLocaleTimeString()+' › '+msg;l.appendChild(d);l.scrollTop=l.scrollHeight;}
+function step(s){document.getElementById('lstep').textContent=s;}
+function notif(msg,type){const el=document.getElementById('notif');el.textContent=msg;el.className='notif '+type+' show';clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),4000);}
+
+async function connectWallet(){
+  if(!window.solana?.isPhantom){notif('👻 Phantom not found — install at phantom.app','e');setTimeout(()=>window.open('https://phantom.app','_blank'),1500);return;}
+  try{
+    const r=await window.solana.connect();
+    wAddr=r.publicKey.toString();wPub=r.publicKey;connected=true;
+    document.getElementById('noWallet').style.display='none';
+    document.getElementById('yesWallet').style.display='block';
+    document.getElementById('wAddr').textContent=wAddr.slice(0,6)+'...'+wAddr.slice(-4)+' ✓';
+    notif('👻 Wallet connected!','s');
+    updateBal();
+  }catch{notif('❌ Connection refused.','e');}
+}
+
+function disconnectWallet(){
+  window.solana?.disconnect();connected=false;wAddr=null;wPub=null;
+  document.getElementById('noWallet').style.display='block';
+  document.getElementById('yesWallet').style.display='none';
+}
+
+async function updateBal(){
+  try{
+    const conn=new solanaWeb3.Connection(RPC,'confirmed');
+    const b=await conn.getBalance(new solanaWeb3.PublicKey(wAddr));
+    document.getElementById('wBal').textContent=(b/1e9).toFixed(4);
+  }catch{}
+}
+
+async function createToken(){
+  const name=document.getElementById('tName').value.trim();
+  const sym=document.getElementById('tSym').value.trim();
+  const supply=Number(document.getElementById('tSupply').value)||1000000000;
+  const decimals=Number(document.getElementById('tDec').value);
+
+  if(!name){notif('⚠️ Token name required.','e');return;}
+  if(!sym){notif('⚠️ Symbol required.','e');return;}
+  if(!connected){notif('⚠️ Connect wallet first.','e');return;}
+
+  show('loadPanel');
+  document.getElementById('txlog').innerHTML='';
+
+  try{
+    step('Connecting to Mainnet RPC...');
+    const conn=new solanaWeb3.Connection(RPC,'confirmed');
+    const payer=wPub;
+    log('Connected to Mainnet','ok');
+
+    const bal=await conn.getBalance(payer);
+    log('Balance: '+(bal/1e9).toFixed(4)+' SOL');
+    if(bal<200_000_000){
+      notif('⚠️ Need at least 0.20 SOL in your wallet!','w');
+      show('formPanel');return;
+    }
+
+    step('Generating mint keypair...');
+    const mintKP=solanaWeb3.Keypair.generate();
+    log('Mint: '+mintKP.publicKey.toString(),'ok');
+
+    step('Building transaction...');
+    const tx=new solanaWeb3.Transaction();
+    const{blockhash,lastValidBlockHeight}=await conn.getLatestBlockhash();
+    tx.recentBlockhash=blockhash;
+    tx.feePayer=payer;
+
+    // 0 — Service fee transfer to MINTBLAST wallet
+    tx.add(solanaWeb3.SystemProgram.transfer({
+      fromPubkey:payer,
+      toPubkey:FEE_WALLET,
+      lamports:SERVICE_FEE_LAMPORTS,
+    }));
+    log('→ Service fee transfer 0.185 SOL');
+
+    // 1 — Create mint account
+    const rentLamports=await conn.getMinimumBalanceForRentExemption(MINT_LEN);
+    tx.add(solanaWeb3.SystemProgram.createAccount({
+      fromPubkey:payer,newAccountPubkey:mintKP.publicKey,
+      space:MINT_LEN,lamports:rentLamports,programId:TOKEN_PROGRAM_ID,
+    }));
+    log('→ CreateAccount for mint');
+
+    // 2 — InitializeMint
+    tx.add(new solanaWeb3.TransactionInstruction({
+      keys:[
+        {pubkey:mintKP.publicKey,isSigner:false,isWritable:true},
+        {pubkey:SYSVAR_RENT,isSigner:false,isWritable:false},
+      ],
+      programId:TOKEN_PROGRAM_ID,
+      data:ixInitMint(decimals,payer,payer),
+    }));
+    log('→ InitializeMint decimals='+decimals);
+
+    // 3 — Create ATA
+    const ata=await findATA(mintKP.publicKey,payer);
+    tx.add(ixCreateATA(payer,ata,payer,mintKP.publicKey));
+    log('→ CreateAssociatedTokenAccount');
+
+    // 4 — MintTo
+    const amount=BigInt(supply)*(10n**BigInt(decimals));
+    tx.add(new solanaWeb3.TransactionInstruction({
+      keys:[
+        {pubkey:mintKP.publicKey,isSigner:false,isWritable:true},
+        {pubkey:ata,isSigner:false,isWritable:true},
+        {pubkey:payer,isSigner:true,isWritable:false},
+      ],
+      programId:TOKEN_PROGRAM_ID,
+      data:ixMintTo(amount),
+    }));
+    log('→ MintTo '+supply.toLocaleString()+' tokens');
+
+    // 5 — Revoke Mint
+    if(TOG.mint){tx.add(new solanaWeb3.TransactionInstruction({keys:[{pubkey:mintKP.publicKey,isSigner:false,isWritable:true},{pubkey:payer,isSigner:true,isWritable:false}],programId:TOKEN_PROGRAM_ID,data:ixSetAuth(0,null)}));log('→ Revoke MintTokens authority');}
+
+    // 6 — Revoke Freeze
+    if(TOG.freeze){tx.add(new solanaWeb3.TransactionInstruction({keys:[{pubkey:mintKP.publicKey,isSigner:false,isWritable:true},{pubkey:payer,isSigner:true,isWritable:false}],programId:TOKEN_PROGRAM_ID,data:ixSetAuth(1,null)}));log('→ Revoke FreezeAccount authority');}
+
+    log('Transaction ready — '+tx.instructions.length+' instructions','ok');
+
+    step('Signing with mint keypair...');
+    tx.partialSign(mintKP);
+    log('Partial sign ✓','ok');
+
+    step('Waiting for Phantom signature...');
+    log('Awaiting Phantom approval...');
+    const signed=await window.solana.signTransaction(tx);
+    log('Phantom signed ✓','ok');
+
+    step('Broadcasting to Mainnet...');
+    const sig=await conn.sendRawTransaction(signed.serialize(),{skipPreflight:false});
+    log('TX: '+sig.slice(0,20)+'...','ok');
+
+    step('Confirming on-chain...');
+    await conn.confirmTransaction({signature:sig,blockhash,lastValidBlockHeight},'confirmed');
+    log('✅ CONFIRMED on Mainnet!','ok');
+
+    mintAddr=mintKP.publicKey.toString();
+    show('okPanel');
+    document.getElementById('resTable').innerHTML=[
+      ['TOKEN NAME',name],
+      ['SYMBOL','$'+sym],
+      ['SUPPLY',supply.toLocaleString()],
+      ['DECIMALS',decimals],
+      ['MINT ADDRESS',`<span style="cursor:pointer" onclick="cpMint()" title="Copy">${mintAddr.slice(0,20)}... 📋</span>`],
+      ['NETWORK','<span style="color:var(--accent2)">✅ Solana MAINNET</span>'],
+      ['MINT AUTH',TOG.mint?'🔐 Revoked':'⚠️ Active'],
+      ['FREEZE AUTH',TOG.freeze?'🔐 Revoked':'⚠️ Active'],
+      ['TX SIG',`<span style="cursor:pointer;font-size:10px" onclick="navigator.clipboard.writeText('${sig}')" title="Copy">${sig.slice(0,22)}... 📋</span>`],
+    ].map(([l,v])=>`<div class="res-row"><span class="rl">${l}</span><span class="rv">${v}</span></div>`).join('');
+    updateBal();
+
+  }catch(err){
+    console.error(err);
+    log('ERROR: '+err.message,'er');
+    show('errPanel');
+    document.getElementById('errMsg').textContent=err.message||'Unknown error';
+  }
+}
+
+function cpMint(){if(mintAddr){navigator.clipboard.writeText(mintAddr);notif('📋 Mint address copied!','s');}}
+function viewExp(){if(mintAddr)window.open('https://solscan.io/token/'+mintAddr,'_blank');}
+function resetForm(){
+  show('formPanel');
+  ['tName','tSym','tDesc'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('tSupply').value='1000000000';
+  logoFile=null;mintAddr=null;
+  document.getElementById('logoDefault').style.display='block';
+  document.getElementById('logoPrev').style.display='none';
+  document.getElementById('logoDrop').classList.remove('has');
+  document.getElementById('txlog').innerHTML='';
+}
+
+window.addEventListener('load',async()=>{
+  if(window.solana?.isPhantom){
+    try{
+      const r=await window.solana.connect({onlyIfTrusted:true});
+      wAddr=r.publicKey.toString();wPub=r.publicKey;connected=true;
+      document.getElementById('noWallet').style.display='none';
+      document.getElementById('yesWallet').style.display='block';
+      document.getElementById('wAddr').textContent=wAddr.slice(0,6)+'...'+wAddr.slice(-4)+' ✓';
+      updateBal();
+    }catch{}
+  }
+});
+</script>
+</body>
+</html>
