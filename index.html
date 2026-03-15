@@ -213,10 +213,9 @@
     <div class="hr"></div>
     <div class="sec">05 — Fee Summary</div>
     <div class="fee-rows">
-      <div class="fee-row"><span>Solana network fee</span><span>~0.005 SOL</span></div>
-      <div class="fee-row"><span>Metadata on-chain</span><span>~0.01 SOL</span></div>
-      <div class="fee-row"><span>MINTBLAST service fee</span><span>0.185 SOL</span></div>
-      <div class="fee-row tot"><span>TOTAL</span><span>≈ 0.20 SOL</span></div>
+      <div class="fee-row"><span>Solana network fee</span><span>~0.003 SOL</span></div>
+      <div class="fee-row"><span>MINTBLAST service fee</span><span style="color:var(--accent2)">FREE (test mode)</span></div>
+      <div class="fee-row tot"><span>TOTAL</span><span>≈ 0.003 SOL</span></div>
     </div>
     <div class="fee-box">
       <div style="font-size:28px">🔒</div>
@@ -224,7 +223,7 @@
         <div style="font-size:14px;font-weight:700;margin-bottom:4px">100% transparent & non-custodial</div>
         <div style="font-size:12px;color:var(--muted);line-height:1.5">Your wallet signs every transaction. We never hold your funds. Token sent directly to your wallet.</div>
       </div>
-      <div style="text-align:right"><div class="fee-val">0.20</div><div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted)">SOL total</div></div>
+      <div style="text-align:right"><div class="fee-val">~0.003</div><div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--accent2)">SOL only (test)</div></div>
     </div>
 
     <div id="noWallet">
@@ -284,8 +283,8 @@ const ASSOC_TOKEN_PROGRAM_ID = new solanaWeb3.PublicKey('ATokenGPvbdGVxr1b2hvZbs
 const SYSVAR_RENT            = new solanaWeb3.PublicKey('SysvarRent111111111111111111111111111111111');
 const MINT_LEN = 82;
 // ⚠️ Replace with your own wallet address to receive the 0.185 SOL service fee
-const FEE_WALLET = new solanaWeb3.PublicKey('BeoyaL5KxU5NSWpMpkkGmBRaqqnpHS2vQh3t7gZh3EYH');
-const SERVICE_FEE_LAMPORTS = 185_000_000; // 0.185 SOL
+const FEE_WALLET = new solanaWeb3.PublicKey('11111111111111111111111111111111');
+const SERVICE_FEE_LAMPORTS = 0; // TEST MODE — 0 SOL service fee
 
 const RPC = 'https://api.mainnet-beta.solana.com';
 
@@ -376,8 +375,8 @@ async function createToken(){
 
     const bal=await conn.getBalance(payer);
     log('Balance: '+(bal/1e9).toFixed(4)+' SOL');
-    if(bal<200_000_000){
-      notif('⚠️ Need at least 0.20 SOL in your wallet!','w');
+    if(bal<5_000_000){
+      notif('⚠️ Need at least 0.005 SOL in your wallet!','w');
       show('formPanel');return;
     }
 
@@ -391,13 +390,17 @@ async function createToken(){
     tx.recentBlockhash=blockhash;
     tx.feePayer=payer;
 
-    // 0 — Service fee transfer to MINTBLAST wallet
-    tx.add(solanaWeb3.SystemProgram.transfer({
-      fromPubkey:payer,
-      toPubkey:FEE_WALLET,
-      lamports:SERVICE_FEE_LAMPORTS,
-    }));
-    log('→ Service fee transfer 0.185 SOL');
+    // 0 — Service fee (0 in test mode)
+    if(SERVICE_FEE_LAMPORTS > 0){
+      tx.add(solanaWeb3.SystemProgram.transfer({
+        fromPubkey:payer,
+        toPubkey:FEE_WALLET,
+        lamports:SERVICE_FEE_LAMPORTS,
+      }));
+      log('→ Service fee transfer 0.185 SOL');
+    } else {
+      log('→ Service fee: FREE (test mode)');
+    }
 
     // 1 — Create mint account
     const rentLamports=await conn.getMinimumBalanceForRentExemption(MINT_LEN);
